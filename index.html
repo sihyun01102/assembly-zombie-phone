@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <title>정회 — 국회 좀비폰</title>
 <link rel="stylesheet" href="style.css" />
+<style>#lock{touch-action:none;overscroll-behavior:none}.swipehint{cursor:pointer;user-select:none;-webkit-user-select:none}</style>
 
 </head>
 <body>
@@ -129,8 +130,148 @@
     <div class="poweroff" id="poweroff"><div><div class="six">6/6</div><div class="endcap">17:08 · 전원 꺼짐</div></div></div>
   </div>
 </div></div>
-<script src="script1.js"></script>
-<script src="script2.js"></script>
-<script src="script3.js"></script>
-<script src="script4.js"></script>
+
+
+
+
+<script>
+
+(() => {
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const initial={unlocked:false,firstChoice:null,ymLocation:false,selfLocation:false,videoViewed:false,videoShared:false,screenshotReceived:false,noticeOld:false,stage1:false,radioOld:false,signalFound:false,radioSaved:false,assignSeen:false,zoneFound:false,phoneUnlocked:false,called204:false,mapUnlocked:false,routeDone:false,fiveArrived:false,finalRadio:false,finalBroadcast:false,ended:false,battery:9,time:'16:38',officeEvent:false,jionEvent:false,ymMessages:[],jionMessages:[],officeMessages:[]};
+let S=Object.assign({},initial,JSON.parse(localStorage.getItem('assemblyZombiePhone')||'{}'));
+const save=()=>localStorage.setItem('assemblyZombiePhone',JSON.stringify(S));
+const set=(patch)=>{Object.assign(S,patch);save();renderState();};
+function toast(t,x){$('#toastTitle').textContent=t;$('#toastText').textContent=x;$('#toast').classList.add('show');setTimeout(()=>$('#toast').classList.remove('show'),2500)}
+function battery(n,time){S.battery=n;if(time)S.time=time;save();renderState()}
+function renderState(){
+ $('#batnum').textContent=S.battery+'%'; $('#batfill').style.width=S.battery+'%'; $('#clock').textContent=S.time;
+ $$('.battery').forEach(x=>x.classList.toggle('low',S.battery<=10));
+ $('#radioIcon').classList.toggle('locked',!S.stage1); $('#phoneIcon').classList.toggle('locked',!S.phoneUnlocked); $('#mapIcon').classList.toggle('locked',!S.mapUnlocked);
+ $('#assignFile').style.display=S.signalFound?'flex':'none'; $('#clueThumb').style.display=S.assignSeen?'block':'none';
+ let m='여명 비서관의 이동을 멈추고 현재 상황을 확인하세요.', sub='확인되지 않은 이동은 위험합니다.';
+ if(S.firstChoice && !S.noticeOld){m='도서관 집결 안내의 시각을 확인하세요.';sub='영상과 파일의 시간을 비교할 수 있습니다.'}
+ if(S.noticeOld && !S.stage1){m='도서관 영상과 안내 원본을 모두 확인하세요.';sub='확인한 자료를 여명에게 전달해야 합니다.'}
+ if(S.stage1 && !S.signalFound){m='라디오에서 본청 현장 교신을 찾으세요.';sub='91.4 안내 방송과 93.0~94.0 현장 대역을 확인하세요.'}
+ if(S.signalFound && !S.zoneFound){m='여섯 명이 있는 대기실의 정확한 위치를 찾으세요.';sub='배정표와 어제 찍은 표지 사진을 확인하세요.'}
+ if(S.zoneFound && !S.called204){m='찾아낸 내선으로 현재 위치와 인원을 확인하세요.';sub='자료검토실 · 제2대기실의 연락처를 사용하세요.'}
+ if(S.called204 && !S.routeDone){m='여명과 시설 담당자가 이동할 내부 경로를 확인하세요.';sub='외부로 나가지 않고 본청 내부에서 접근해야 합니다.'}
+ if(S.routeDone && !S.finalRadio){m='후속 이송 한 명의 도착을 확인하세요.';sub='지온이 알려준 예비 중계 101.2를 확인하세요.'}
+ if(S.finalRadio && !S.finalBroadcast){m='처음의 안내 방송이 정정됐는지 확인하세요.';sub='91.4 MHz를 다시 맞춰보세요.'}
+ if(S.finalBroadcast){m='본청 고립 인원 6/6 확인 완료';sub='연락현황에서 마지막 상태를 확인하세요.'}
+ $('#mission').textContent=m;$('#missionsub').textContent=sub;
+ $('#msgbadge').style.display=(S.firstChoice&&S.officeEvent)?'grid':'none';
+ renderNotes(); renderStatus();
+}
+function showView(id){$$('.view,.appview').forEach(v=>v.classList.remove('active'));$('#'+id).classList.add('active');$('#homebar').style.display=(id==='lock'||id==='poweroff')?'none':'block';}
+function openApp(id){if((id==='radio'&&!S.stage1)||(id==='phoneapp'&&!S.phoneUnlocked)||(id==='map'&&!S.mapUnlocked)){toast('잠겨 있음','아직 사용할 이유가 없습니다.');return} showView(id); if(id==='messages')showChatList(); if(id==='radio')updateRadio(); if(id==='status')renderStatus();}
+function unlock(target){S.unlocked=true;save();showView(target||'home');if(target==='gallery')openMedia('video');if(target==='messages'){openChat('ym')}}
+// lock interactions — mobile Safari/iPhone + pointer fallback
+const lock=$('#lock');
+let sy=null,lastY=null,gestureUnlocked=false;
+const beginSwipe=(y)=>{sy=y;lastY=y;gestureUnlocked=false};
+const moveSwipe=(y,e)=>{if(sy===null)return;lastY=y;if(e&&e.cancelable)e.preventDefault();if(!gestureUnlocked&&sy-y>42){gestureUnlocked=true;unlock('home')}};
+const endSwipe=(y)=>{if(sy!==null&&!gestureUnlocked&&sy-(y??lastY)>32)unlock('home');sy=null;lastY=null;gestureUnlocked=false};
+lock.style.touchAction='none';
+lock.addEventListener('pointerdown',e=>beginSwipe(e.clientY));
+lock.addEventListener('pointermove',e=>moveSwipe(e.clientY,e));
+lock.addEventListener('pointerup',e=>endSwipe(e.clientY));
+lock.addEventListener('pointercancel',()=>endSwipe(lastY));
+lock.addEventListener('touchstart',e=>{if(e.touches&&e.touches[0])beginSwipe(e.touches[0].clientY)},{passive:true});
+lock.addEventListener('touchmove',e=>{if(e.touches&&e.touches[0])moveSwipe(e.touches[0].clientY,e)},{passive:false});
+lock.addEventListener('touchend',e=>endSwipe(e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientY:lastY),{passive:true});
+$('.swipehint').addEventListener('click',()=>unlock('home'));
+$$('[data-locktarget]').forEach(b=>b.onclick=()=>unlock(b.dataset.locktarget));
+$$('.app').forEach(b=>b.onclick=()=>openApp(b.dataset.app));$$('[data-close]').forEach(b=>b.onclick=()=>showView('home'));$('#homebar').onclick=()=>showView('home');
+// Messages
+const baseYM=[
+ {who:'me',time:'08:41',text:'수정본 올렸습니다! 표 숫자 한 번만 같이 체크해주세요ㅠ'},
+ {who:'them',time:'08:42',text:'오케이. 본청 도착하면 확인할게.'},
+ {who:'me',time:'08:43',text:'오늘 끝나면 국밥 먹으러 가용ㅋㅋㅋ'},
+ {who:'them',time:'08:44',text:'오늘 끝나기는 하냐ㅋㅋ'},
+ {who:'me',time:'10:47',text:'저는 회관으로 들어왔어요. 어디세요?',fail:true},
+ {who:'them',time:'16:38',text:'도서관으로 집결하래.\n난 그쪽으로 가보려고.\n너 어디야?'}
+];
+const baseOffice=[
+ {who:'them',name:'이시환 보좌관',time:'10:28',text:'지금 밖에 무슨 일이에요?'},
+ {who:'them',name:'김인철 비서관',time:'10:29',text:'감사 중단됐어요. 일단 안에서 대기하래요.'},
+ {who:'them',name:'서용호 선임비서관',time:'10:30',text:'여명비서관님 본청 들어갔죠?'},
+ {who:'them',name:'김인철 비서관',time:'10:31',text:'상황공유방에서 온 안내입니다. 일단 공유드려요.\n📎 임시_집결_안내.pdf'}
+];
+function showChatList(){ $('#chatList').style.display='block';$('#chatWrap').style.display='none';$('#chatTitle').textContent='메시지'; }
+$$('[data-chat]').forEach(r=>r.onclick=()=>openChat(r.dataset.chat));
+function bubble(m){const d=document.createElement('div');d.className='bubble '+(m.who==='me'?'me':'')+(m.fail?' fail':'');d.innerHTML=(m.name?'<b style="font-size:11px;color:#b7c1c8">'+m.name+'</b><br>':'')+escapeHtml(m.text).replace(/\n/g,'<br>')+'<span class="time">'+m.time+'</span>'+(m.fail?'<div class="failtag">전송 실패 · 다시 보내기</div>':'');return d}
+function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function openChat(type){$('#chatList').style.display='none';$('#chatWrap').style.display='flex';const log=$('#chatLog'), choices=$('#chatChoices');log.innerHTML='';choices.innerHTML='';
+ if(type==='ym'){ $('#chatTitle').textContent='여명';[...baseYM,...S.ymMessages].forEach(m=>log.appendChild(bubble(m))); renderYMChoices(choices); }
+ if(type==='office'){ $('#chatTitle').textContent='의원실 단톡방';[...baseOffice,...S.officeMessages].forEach(m=>log.appendChild(bubble(m))); choices.innerHTML='<button class="choice" id="backChats">‹ 대화 목록</button>'; }
+ if(type==='jion'){ $('#chatTitle').textContent='한지온'; if(!S.jionMessages.length)log.appendChild(bubble({who:'them',time:'—',text:'아직 새 메시지가 없습니다.'}));S.jionMessages.forEach(m=>log.appendChild(bubble(m))); choices.innerHTML='<button class="choice" id="backChats">‹ 대화 목록</button>'; }
+ const b=$('#backChats');if(b)b.onclick=showChatList; log.scrollTop=log.scrollHeight;
+}
+function renderYMChoices(c){
+ if(!S.firstChoice){['아직 본청 안에 계세요?','일단 움직이지 마세요.','그 안내 어디서 받으셨어요?'].forEach((t,i)=>{const b=document.createElement('button');b.className='choice';b.textContent=t;b.onclick=()=>chooseFirst(i+1);c.appendChild(b)});return}
+ const back=document.createElement('button');back.className='choice';back.textContent='‹ 대화 목록';back.onclick=showChatList;c.appendChild(back);
+ if(!S.videoShared){const b=document.createElement('button');b.className='choice';b.textContent='최근 동영상 확인하기';b.onclick=()=>{showView('gallery');openMedia('video')};c.prepend(b)}
+ else if(!S.noticeOld){const b=document.createElement('button');b.className='choice';b.textContent='받은 안내와 원본 비교하기';b.onclick=()=>{showView('files');openFile('notice')};c.prepend(b)}
+}
+function addYM(who,text,time=S.time){S.ymMessages.push({who,text,time});save()}
+function chooseFirst(n){S.firstChoice=n;S.ymLocation=true;S.selfLocation=true;
+ if(n===1){addYM('me','아직 본청 안에 계세요?');addYM('them','응. 본청 안. 아직 안 나갔어. 너는?');addYM('me','저는 회관이에요. 도서관 앞에 감염자 몰려 있었어요. 일단 안에서 대기해주세요.');addYM('them','확인. 본청에서 대기할게. 찍어둔 거 있으면 보내줘.');}
+ if(n===2){addYM('me','일단 움직이지 마세요.');addYM('them','아직 안 나갔어. 무슨 상황인데?');addYM('me','저는 회관이에요. 빠져나올 때 도서관 앞 상황이 안 좋았습니다. 영상 확인해볼게요.');}
+ if(n===3){addYM('me','그 안내 어디서 받으셨어요?');addYM('them','직원 단톡. 오후에 다시 올라왔어.');addYM('them','📎 집결 안내 캡처');addYM('me','제가 빠져나올 때는 도서관 앞에 감염자 있었어요. 안내 확인할 동안 움직이지 마세요.');addYM('them','응. 아직 본청 안이야. 확인해봐.');S.screenshotReceived=true;}
+ battery(9,'16:39');save();openChat('ym');toast('위치 확인','윤여명 · 본청 내부 · 16:39');
+}
+// Gallery
+function openMedia(type){$('#galleryGrid').style.display='none';const d=$('#mediaDetail');d.style.display='block';d.innerHTML='';
+ if(type==='video')renderVideo(d);else if(type==='clue')renderCluePhoto(d);else{d.innerHTML='<div class="card"><h3>사진</h3><p>국정감사 당일의 평범한 기록입니다.</p></div><button class="secondary" id="backGallery">‹ 최근 항목</button>';$('#backGallery').onclick=closeMedia}
+}
+$$('[data-media]').forEach(b=>b.onclick=()=>openMedia(b.dataset.media));function closeMedia(){$('#mediaDetail').style.display='none';$('#galleryGrid').style.display='block'}
+function renderVideo(d){d.innerHTML=`<div class="small">오늘 10:44 · 동영상 00:11</div><div class="mediaScene" id="mediaScene"><div class="ground"></div><div class="building"><div class="doors"></div></div><div class="figure runner"></div><div class="figure f1"></div><div class="figure f2"></div></div><input class="timeline" id="timeline" type="range" min="0" max="11" value="0" step="1"><div class="mediacap" id="mediacap">00:00 · 화면이 흔들린다. 도서관 앞쪽으로 사람들이 뛰고 있다.</div><button class="sharebtn" id="shareVideo" disabled>여명에게 이 장면 보내기</button><button class="secondary" id="backGallery">‹ 최근 항목</button>`;
+ const tl=$('#timeline'),sc=$('#mediaScene'),cap=$('#mediacap'),sh=$('#shareVideo');
+ tl.oninput=()=>{const v=+tl.value;sc.classList.toggle('shake',v>=8);if(v<4)cap.textContent='00:0'+v+' · 화면이 흔들린다. 도서관 앞쪽으로 사람들이 뛰고 있다.';else if(v<7)cap.textContent='00:0'+v+' · 국회도서관 간판이 화면에 잡힌다.';else{cap.textContent='00:'+String(v).padStart(2,'0')+' · 출입문 앞 감염자가 달리는 사람에게 달려든다.';sh.disabled=false;S.videoViewed=true;save();} };
+ sh.onclick=()=>{if(!S.firstChoice){toast('확인 완료','도서관 앞 위험 상황을 확인했습니다. 메시지에서 여명에게 연락하세요.');S.videoViewed=true;save();return} if(!S.videoShared){S.videoShared=true;addYM('me','10시 44분에 찍힌 영상입니다. 도서관 앞에 감염자 있습니다.',S.time);addYM('them','영상 확인. 내가 받은 안내도 보낼게.',S.time);addYM('them','📎 집결 안내 캡처',S.time);S.screenshotReceived=true;save();toast('전송 완료','여명에게 도서관 영상이 전달되었습니다.');checkStage1();} sh.textContent='전송 완료';sh.disabled=true;renderState()};
+ if(S.videoShared){sh.textContent='전송 완료';sh.disabled=true} $('#backGallery').onclick=closeMedia;
+}
+function renderCluePhoto(d){d.innerHTML=`<div class="small">어제 18:12 · 제2대기실 표지 설치</div><div class="cluephoto"><div id="photoViewport" class="photoViewport"><div class="roomdoor"><div class="paperlabel">제2대기실</div></div><div class="zoneLabel" id="zoneLabel">C구역</div></div></div><div class="controls"><label>확대 <input id="zoom" type="range" min="1" max="2.4" step="0.1" value="1"></label><label>사진 이동 <input id="pan" type="range" min="0" max="100" value="0"></label></div><div id="zoneReveal" class="reveal">사진 오른쪽 표지에서 <b>C구역</b>을 확인했습니다.</div><button class="secondary" id="backGallery">‹ 최근 항목</button>`;
+ const zoom=$('#zoom'),pan=$('#pan'),vp=$('#photoViewport'),zr=$('#zoneReveal');function upd(){const z=+zoom.value,p=+pan.value;vp.style.transform=`scale(${z}) translateX(${-(p-50)/10}px)`;if(z>=1.7&&p>=68){zr.classList.add('show');if(!S.zoneFound){S.zoneFound=true;S.phoneUnlocked=true;save();battery(7,'16:49');toast('위치 단서 확인','C구역 · 제2대기실 / 내선 204');renderState()}}}zoom.oninput=pan.oninput=upd; if(S.zoneFound)zr.classList.add('show');$('#backGallery').onclick=closeMedia;
+}
+// Files
+$$('[data-file]').forEach(x=>x.onclick=()=>openFile(x.dataset.file));function closeFile(){$('#fileDetail').style.display='none';$('#fileList').style.display='block'}
+function openFile(type){$('#fileList').style.display='none';const d=$('#fileDetail');d.style.display='block';
+ if(type==='notice'){d.innerHTML=`<div class="doc"><h2>임시 집결 안내</h2><div class="stamp">10:31 기준</div><p>경내 혼잡으로 인해 일시적인 이동 통제를 실시합니다.</p><p class="big">임시 집결 장소<br>국회도서관</p><p>추가 안내 전까지 현장 지시에 따라 이동하십시오.</p>${S.screenshotReceived?'<div class="cropOverlay" id="cropOverlay"></div>':''}</div>${S.screenshotReceived?'<div class="compareWrap"><label class="small">전달받은 캡처 겹치기</label><input class="compareRange" id="compareRange" type="range" min="0" max="100" value="0"><div id="compareReveal" class="reveal">캡처 상단이 잘려 <b>‘10:31 기준’</b>이 보이지 않았습니다. 오후에 다시 전달됐지만 문서는 오전 안내입니다.</div></div>':'<div class="card"><p>이 파일은 10:31 의원실 단톡방에서 저장한 원본입니다.</p></div>'}<button class="secondary" id="backFiles">‹ 파일 목록</button>`;
+   if(S.screenshotReceived){const r=$('#compareRange'),ov=$('#cropOverlay'),rev=$('#compareReveal');r.oninput=()=>{ov.style.opacity=(+r.value/100);ov.style.transform=`translateY(${(-38+(+r.value*.38))}px)`;if(+r.value>=90){rev.classList.add('show');if(!S.noticeOld){S.noticeOld=true;save();addYM('me','원본 확인했습니다. 오전 10시 31분 안내예요. 제가 찍은 영상보다 전입니다.',S.time);addYM('them','그럼 이 안내는 쓰면 안 되겠네. 본청 쪽에 전달할게.',S.time);toast('시각 확인','기존 도서관 집결 안내는 오전 자료입니다.');checkStage1();renderState()}}};if(S.noticeOld){rev.classList.add('show');r.value=100;r.dispatchEvent(new Event('input'))}}
+   else {if(!S.noticeOld && S.videoViewed){/* no screenshot yet */}}
+ }
+ if(type==='assign'){d.innerHTML=`<div class="doc"><h2>국감 임시공간 배정표</h2><p>본청 대기공간 임시 운영표</p><table class="assignment"><tr><th>임시명칭</th><th>기존 공간명</th><th>내선</th></tr><tr class="target"><td>제2대기실</td><td><b>자료검토실</b></td><td><b>204</b></td></tr><tr><td>제3대기실</td><td>회의준비실</td><td>207</td></tr></table><p class="small" style="margin-top:18px">어제 표지 설치 사진이 사진 앱에 남아 있습니다.</p></div><button class="primary" id="openCluePhoto">표지 설치 사진 열기</button><button class="secondary" id="backFiles">‹ 파일 목록</button>`;S.assignSeen=true;save();renderState();$('#openCluePhoto').onclick=()=>{showView('gallery');openMedia('clue')}}
+ $('#backFiles').onclick=closeFile;
+}
+function checkStage1(){if(S.videoShared&&S.noticeOld&&!S.stage1){S.stage1=true;S.officeEvent=true;S.jionEvent=true;battery(8,'16:43');S.officeMessages.push({who:'them',name:'이시환 보좌관',time:'16:43',text:'김인철 비서관님 연락되는 분 계세요? 오전 이후로 답이 없네요.'},{who:'them',name:'서용호 선임비서관',time:'16:43',text:'마지막으로는 본청 대기실 쪽에 계셨습니다.'},{who:'them',name:'윤여명 비서관',time:'16:44',text:'본청 안에서 확인해볼게. 대기실 배정표 있으면 찾아둬.'});S.jionMessages.push({who:'them',time:'16:44',text:'이음아, 여기 임시 라디오 중계 붙였어. 본청 쪽 교신도 들어와. 수신 기록 좀 봐줘.'},{who:'them',time:'16:44',text:'📎 임시 채널 안내\n안내 방송 91.4\n현장 교신 93.0~94.0\n예비 중계 101.2'});save();toast('새 메시지','김인철 비서관의 연락이 끊겼습니다. 라디오가 활성화되었습니다.');renderState()}}
+// Radio
+const dial=$('#dial');dial.oninput=updateRadio;function near(a,b,t=.06){return Math.abs(a-b)<=t}
+function updateRadio(){const f=+dial.value;$('#freqVal').textContent=f.toFixed(1);let text='……치직……',q=8,saveBtn=false;if(!S.stage1){$('#meterFill').style.width='5%';$('#radioText').textContent='수신기 대기 중';$('#saveRadio').style.display='none';return;}
+ if(near(f,91.4)){q=96;if(S.finalRadio){text='본청 임시대기실에 고립됐던 여섯 명의 내부 대피 구역 복귀를 확인했습니다.\n현재 확인된 안전구역은 의원회관, 본청, 소통관입니다.\n기존 도서관 집결 안내는 폐기합니다. 각 건물 내부에서 대기해 주세요.';if(!S.finalBroadcast){S.finalBroadcast=true;battery(1,'17:08');S.officeMessages.push({who:'them',name:'김인철 비서관',time:'17:08',text:'저 포함 여섯 명 전원 본청 안으로 합류했습니다.'},{who:'them',name:'이시환 보좌관',time:'17:08',text:'확인했습니다. 다른 미확인 인원 있으면 마지막 위치부터 남겨주세요.'},{who:'them',name:'서용호 선임비서관',time:'17:08',text:'회관 쪽 명단도 다시 맞추겠습니다.'});addYM('them','여섯 명 확인 끝. 수신 기록하고 위치 자료 단톡에 남겨줘.','17:08');addYM('me','올렸습니다. 배터리 1퍼라 여기서 꺼둘게요.','17:08');addYM('them','확인. 다음 교신은 18시에 하자.','17:08');addYM('me','네. 그때 다시 켜겠습니다.','17:08');save();toast('정정 방송','91.4 MHz 안내가 현재 상황으로 갱신되었습니다.');renderState()}}else{text='도서관을 임시 집결 장소로 지정합니다.\n안내에 따라 이동해 주시기 바랍니다.\n……치직……\n도서관을 임시 집결 장소로 지정합니다.';if(!S.radioOld){S.radioOld=true;save();S.jionMessages.push({who:'me',time:'16:45',text:'91.4에 오전 도서관 안내가 계속 나와. 운용 담당자한테 중단 요청해줘.'},{who:'them',time:'16:45',text:'확인. 현장 교신은 다른 대역이야.'});toast('반복 방송','오전 도서관 안내가 계속 재생되고 있습니다.')}}}
+ else if(f>=93&&f<=94){const d=Math.abs(f-93.7);q=Math.max(18,100-d*110);if(d<.06){text='본청 임시대기실입니다. 김인철입니다.\n저 포함 여섯 명 있습니다.\n복도 쪽이 막혔어요. 한 명은 걷기가 어렵습니다.\n원래 문패에는 자료검토실이라고 적혀 있습니다.';saveBtn=true}else if(d<.25)text='본청…김인철…대기실…여섯 명…\n…자료검토실…';else if(d<.55)text='…본……김……여섯……\n……대기실……';else text='……치직……본청……치직……'}
+ else if(near(f,101.2)&&S.routeDone){q=97;text='시설팀입니다.\n후속 이송 한 명, 내부 대피 구역 도착했습니다.\n현장 여섯 명 전원 이동 완료했습니다.';if(!S.finalRadio){S.finalRadio=true;battery(2,'17:06');S.fiveArrived=true;addYM('them','여섯 번째 분도 도착했어. 여기서 확인했어.','17:06');S.jionMessages.push({who:'them',time:'17:06',text:'마지막 이송 확인됐어. 91.4 안내 채널도 지금 정정본으로 바뀌었어.'});save();toast('6/6','후속 이송 1명 도착. 전원 복귀 확인.');renderState()}}
+ else if(f>=101&&f<=101.4){q=40;text='……한 명……이송……내부……'}
+ $('#meterFill').style.width=q+'%';$('#radioText').textContent=text;$('#saveRadio').style.display=saveBtn?'block':'none';
+}
+$('#saveRadio').onclick=()=>{if(!S.signalFound){S.signalFound=true;S.radioSaved=true;battery(7,'16:47');S.jionMessages.push({who:'me',time:'16:47',text:'93.7에서 김인철 비서관 교신 잡힘. 본청 임시대기실, 6명. 원래 문패는 자료검토실.'});addYM('me','라디오에서 김인철 비서관 교신 확인했습니다. 임시대기실에 여섯 명, 원래 문패는 자료검토실이라고 합니다.','16:47');addYM('them','본청에 임시대기실 두 군데야. 원래 방 이름이랑 맞춰줘. 시설 담당자하고 같이 확인할게.','16:47');save();toast('수신 기록 저장','본청 · 김인철 · 6명 · 자료검토실');renderState()} };
+$('#voiceRadio').onclick=()=>{const t=$('#radioText').textContent;if('speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.replace(/치직|…/g,''));u.lang='ko-KR';u.rate=.92;speechSynthesis.speak(u)}else toast('음성 재생','이 브라우저에서는 음성 합성을 지원하지 않습니다.')};
+// phone
+const kd=$('#keypad');['1','2','3','4','5','6','7','8','9','*','0','⌫'].forEach(x=>{const b=document.createElement('button');b.className='key';b.textContent=x;b.onclick=()=>{let v=$('#keydisplay').textContent;if(x==='⌫')v=v.slice(0,-1);else if(v.length<5)v+=x;$('#keydisplay').textContent=v};kd.appendChild(b)});
+$('#callBtn').onclick=()=>{const v=$('#keydisplay').textContent;if(v==='204'){if(!S.zoneFound){$('#callLog').textContent='위치를 먼저 확인하세요.';return}$('#callLog').innerHTML='<b>내선 204 · 연결됨</b><br>이음: 김인철 비서관님, 지금 제2대기실 맞으세요?<br>김인철: 맞아요. 제2대기실. 여기 여섯 명이에요.<br>이음: 여명 비서관님이 시설 담당자랑 가고 계세요.<br>김인철: 복도 쪽이 막혔어요. 한 분은 걷기 어려워서 같이 기다리고 있습니다.';if(!S.called204){S.called204=true;S.mapUnlocked=true;battery(6,'16:51');addYM('me','내선 204로 김인철 비서관님과 통화했습니다. 제2대기실 6명, 보행 곤란 1명 확인했습니다.','16:51');addYM('them','C구역 왔어. 앞쪽 복도가 막혔어. 시설 담당자는 다른 연결 공간이 있다고 해. 지도 보내봐.','16:52');save();toast('현재 위치 확인','본청 C구역 · 제2대기실 · 6명');renderState()}} else $('#callLog').textContent='연결할 수 없는 내선입니다.'};
+// map
+$$('[data-route]').forEach(b=>b.onclick=()=>{const r=b.dataset.route,fb=$('#routeFeedback');fb.style.display='block';if(r==='a'){fb.innerHTML='<h3 class="danger">통과 불가</h3><p>여명: 앞쪽은 집기 때문에 막혀 있어. 다른 내부 통로 봐줘.</p>'}else if(r==='c'){fb.innerHTML='<h3 class="danger">선택 불가</h3><p>현재 외부 이동은 하지 않습니다. 본청 내부 연결 경로를 확인하세요.</p>'}else{fb.innerHTML='<h3 class="accent">현장 확인 완료</h3><p>여명: 이쪽은 지나갈 수 있어. 대기실 쪽으로 연결된다.</p>';if(!S.routeDone){S.routeDone=true;S.fiveArrived=true;battery(3,'17:02');addYM('them','김 비서관님 만났어. 여섯 명 맞아.','16:58');addYM('them','걸을 수 있는 다섯 명 먼저 이동할게. 한 분은 이송 장비가 필요해. 시설 담당자가 옆에 남아 있을 거야.','16:59');addYM('them','다섯 명 내부 대피 구역 들어왔어. 김 비서관님도 같이 왔고.','17:02');S.jionMessages.push({who:'them',time:'17:03',text:'마지막 이송 교신은 예비 중계 101.2로 넘긴대. 아까 채널 안내에도 있는 번호야.'});save();toast('5/6','먼저 이동한 5명 도착. 후속 이송 1명 대기 중.');renderState()}}});
+// notes/status
+function renderNotes(){let a=['• 의원회관 내부 대기','• 통신 지연 있음'];if(S.ymLocation)a.push('• 윤여명 — 본청 내부 16:39 확인');if(S.noticeOld)a.push('• 도서관 집결 안내 — 10:31 기준, 현재 사용 금지');if(S.signalFound)a.push('• 김인철 포함 6명 — 본청 임시대기실 교신');if(S.zoneFound)a.push('• 위치 후보 — C구역 제2대기실 / 내선 204');if(S.called204)a.push('• 내선 통화 — 6명 현재 위치 확인');if(S.routeDone)a.push('• 내부 이동 경로 — 현장 통과 확인');$('#noteBody').innerHTML=a.map(x=>'<p>'+x+'</p>').join('')}
+function renderStatus(){let n=S.finalRadio?6:S.routeDone?5:0;$('#statusCount').textContent=n+'/6';$('#progressCircle').style.setProperty('--pct',(n/6*100)+'%');let html='';for(let i=1;i<=6;i++){let st=n>=i?'복귀 확인':(S.routeDone&&i===6?'후속 이송 중':S.signalFound?'제2대기실 대기':'미확인');html+=`<div class="personrow"><span>${i===1?'김인철 비서관':'대피자 '+i}</span><b class="${n>=i?'ok':st==='후속 이송 중'?'pending':''}">${st}</b></div>`}$('#peopleList').innerHTML=html;$('#powerBtn').style.display=S.finalBroadcast?'block':'none'}
+$('#powerBtn').onclick=()=>{S.ended=true;save();$('#poweroff').classList.add('show')};
+$('#resetBtn').onclick=()=>{if(confirm('처음부터 다시 시작할까요?')){localStorage.removeItem('assemblyZombiePhone');location.reload()}};
+// stage watchers from non-standard branch
+setInterval(()=>{if(S.firstChoice&&S.videoViewed&&!S.videoShared){/* user still needs share */} if(S.firstChoice&&S.videoShared&&!S.noticeOld&&S.screenshotReceived){}},1000);
+// initialize
+if(S.unlocked)showView('home');else showView('lock'); if(S.ended)$('#poweroff').classList.add('show'); renderState();updateRadio();
+})();
+
+</script>
 </body></html>
