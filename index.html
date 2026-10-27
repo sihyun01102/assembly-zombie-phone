@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>정회 — 국회 좀비폰</title>
+<link rel="stylesheet" href="style.css" />
+
+</head>
+<body>
+<div id="stage"><div id="phone">
+  <div id="screen"><div class="wallpaper"></div>
+    <div class="statusbar"><span id="clock">16:38</span><div class="statusright"><div class="signal"><i></i><i></i><i></i><i></i></div><span>5G</span><span class="battery low"><span id="batnum">9%</span><span class="batterybox"><span id="batfill" class="batteryfill" style="width:9%"></span></span></span></div></div>
+
+    <section id="lock" class="view active">
+      <div class="lockcontent">
+        <div class="locktime">16:38</div><div class="lockdate">10월 26일 월요일</div>
+        <div class="locknotices">
+          <button class="notice" data-locktarget="gallery"><div class="nhead"><span>사진</span><span>방금 전</span></div><b>저장 중단된 동영상이 복구되었습니다</b><p>오늘 10:44 · 00:11</p></button>
+          <button class="notice" data-locktarget="messages"><div class="nhead"><span>메시지 · 여명</span><span>16:38</span></div><b>도서관으로 집결하래.</b><p>난 그쪽으로 가보려고. 너 어디야?</p></button>
+        </div>
+        <div class="swipehint">위로 밀어 열기</div>
+      </div>
+    </section>
+
+    <section id="home" class="view">
+      <div class="homecontent">
+        <div class="widget"><h3>현재 할 일</h3><div class="mission" id="mission">여명 비서관의 이동을 멈추고 현재 상황을 확인하세요.</div><div class="sub" id="missionsub">확인되지 않은 이동은 위험합니다.</div></div>
+        <div class="apps">
+          <button class="app" data-app="messages"><span class="icon i-msg">💬</span><span>메시지</span><em class="badge" id="msgbadge">1</em></button>
+          <button class="app" data-app="gallery"><span class="icon i-photo">▧</span><span>사진</span><em class="badge">1</em></button>
+          <button class="app" data-app="files"><span class="icon i-file">▤</span><span>파일</span></button>
+          <button class="app locked" data-app="radio" id="radioIcon"><span class="icon i-radio">◉</span><span>라디오</span></button>
+          <button class="app locked" data-app="phoneapp" id="phoneIcon"><span class="icon i-phone">☎</span><span>전화</span></button>
+          <button class="app locked" data-app="map" id="mapIcon"><span class="icon i-map">⌖</span><span>지도</span></button>
+          <button class="app" data-app="notes"><span class="icon i-note">≡</span><span>메모</span></button>
+          <button class="app" data-app="status"><span class="icon i-status">6/6</span><span>연락현황</span></button>
+          <button class="app" data-app="settings"><span class="icon i-settings">⚙</span><span>설정</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Messages -->
+    <section id="messages" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2 id="chatTitle">메시지</h2><div class="spacer"></div></header>
+      <div id="chatList" class="scroll chatlist">
+        <div class="row" data-chat="ym"><div class="avatar">윤</div><div class="rowtext"><b>여명</b><p id="ymPreview">도서관으로 집결하래. 난 그쪽으로 가보려고.</p></div><span class="rtime">16:38</span></div>
+        <div class="row" data-chat="office"><div class="avatar">의</div><div class="rowtext"><b>의원실 단톡방</b><p id="officePreview">김인철 비서관 · 상황공유방에서 온 안내입니다.</p></div><span class="rtime">10:31</span></div>
+        <div class="row" data-chat="jion"><div class="avatar">한</div><div class="rowtext"><b>한지온</b><p id="jionPreview">연결되는 대로 연락할게.</p></div><span class="rtime">—</span></div>
+      </div>
+      <div id="chatWrap" class="chatwrap" style="display:none"><div id="chatLog" class="chatlog"></div><div id="chatChoices" class="choices"></div></div>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2 id="galleryTitle">사진</h2><div class="spacer"></div></header>
+      <div id="galleryGrid" class="scroll"><div class="gallerygrid">
+        <button class="thumb" data-media="video"><div class="phscene"></div><span>10:44 · 0:11 ▶</span></button>
+        <button class="thumb" data-media="lunch" style="background:linear-gradient(135deg,#835f38,#d1a45d)"><span>08:19</span></button>
+        <button class="thumb" data-media="papers" style="background:linear-gradient(135deg,#e8e6df,#969ca1)"><span>08:32</span></button>
+        <button class="thumb" data-media="hall" style="background:linear-gradient(135deg,#34434f,#12181e)"><span>10:38</span></button>
+        <button class="thumb" id="clueThumb" data-media="clue" style="display:none;background:linear-gradient(135deg,#756c62,#2a3034)"><span>어제 · 18:12</span></button>
+      </div></div>
+      <div id="mediaDetail" class="scroll" style="display:none"></div>
+    </section>
+
+    <!-- Files -->
+    <section id="files" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2 id="filesTitle">파일</h2><div class="spacer"></div></header>
+      <div id="fileList" class="scroll">
+        <div class="fileitem" data-file="notice"><div class="fileico">PDF</div><div class="filemeta"><b>임시_집결_안내.pdf</b><p>오늘 10:31 · 186KB</p></div></div>
+        <div class="fileitem" id="assignFile" data-file="assign" style="display:none"><div class="fileico" style="background:#438f57">XLS</div><div class="filemeta"><b>국감_임시공간_배정표.xlsx</b><p>어제 21:16 · 44KB</p></div></div>
+        <div class="fileitem"><div class="fileico">PDF</div><div class="filemeta"><b>오후질의_최종수정.pdf</b><p>오늘 08:40 · 2.4MB</p></div></div>
+        <div class="fileitem"><div class="fileico">PDF</div><div class="filemeta"><b>답변서_수정본_3.pdf</b><p>오늘 09:12 · 4.1MB</p></div></div>
+      </div>
+      <div id="fileDetail" class="scroll" style="display:none"></div>
+    </section>
+
+    <!-- Radio -->
+    <section id="radio" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2>라디오</h2><div class="spacer"></div></header>
+      <div class="scroll radioPanel">
+        <div class="small">국회 임시 FM 수신기</div><div class="freq"><span id="freqVal">91.4</span></div><div class="mhz">MHz</div>
+        <div class="meter"><div id="meterFill" class="meterfill"></div></div>
+        <input id="dial" class="dial" type="range" min="90" max="102" value="91.4" step="0.1" />
+        <div class="small">다이얼을 움직여 신호를 맞추세요.</div>
+        <div class="staticBox"><div class="bars"><i></i><i></i><i></i><i></i><i></i></div><div id="radioText" class="staticText">……치직…… 안내에 따라……</div></div>
+        <button id="saveRadio" class="secondary" style="display:none">수신 기록 저장</button>
+        <button id="voiceRadio" class="secondary">수신 음성 재생</button>
+      </div>
+    </section>
+
+    <!-- Phone -->
+    <section id="phoneapp" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2>전화</h2><div class="spacer"></div></header>
+      <div class="scroll"><div class="keydisplay" id="keydisplay"></div><div class="keypad" id="keypad"></div><button class="call" id="callBtn">☎</button><div id="callLog" class="calllog">청내 내선 번호를 입력하세요.</div></div>
+    </section>
+
+    <!-- Map -->
+    <section id="map" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2>본청 내부 지도</h2><div class="spacer"></div></header>
+      <div class="scroll"><div class="card"><h3>현장 확인</h3><p id="mapInstruction">여명이 보내온 현재 복도 사진과 임시 배치도를 비교해 이동 경로를 선택하세요.</p></div>
+        <div class="mapBox"><div class="room r1">회의준비실<br>제3대기실</div><div class="room r2">C구역<br>시설공간</div><div class="room r3">내부 대피구역</div><div class="room r4">자료검토실<br><b>제2대기실</b></div><div class="corr c1"></div><div class="corr c2"></div><div class="corr c3"></div><div class="blocked">✕ 막힘</div></div>
+        <div class="routebtns"><button class="route" data-route="a">A. 앞쪽 C1 복도로 바로 진입</button><button class="route good" data-route="b">B. 내부 연결공간을 돌아 C3 통로로 접근</button><button class="route bad" data-route="c">C. 외부 계단을 통해 우회</button></div><div id="routeFeedback" class="card" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- Notes -->
+    <section id="notes" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2>메모</h2><div class="spacer"></div></header>
+      <div class="scroll"><div class="card"><h3>확인 메모</h3><div id="noteBody"><p>• 의원회관 내부 대기</p><p>• 여명 비서관 위치 미확인</p><p>• 통신 지연 있음</p></div></div><div class="card"><h3>국감 체크</h3><p>오후질의 표 숫자 재확인</p><p>답변서 수정본 반영 여부</p><p>끝나면 국밥</p></div></div>
+    </section>
+
+    <!-- Status -->
+    <section id="status" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2>연락현황</h2><div class="spacer"></div></header>
+      <div class="scroll"><div class="progressCircle" id="progressCircle" style="--pct:0%"><strong id="statusCount">0/6</strong></div><div class="card"><h3>본청 고립 인원</h3><div id="peopleList"></div></div><button id="powerBtn" class="primary" style="display:none;background:#2b3036">전원을 끈다</button></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings" class="appview">
+      <header class="apphead"><button class="back" data-close>‹ 홈</button><h2>설정</h2><div class="spacer"></div></header>
+      <div class="scroll"><div class="card"><h3>정회 · 플레이 버전</h3><p>진행상태는 이 브라우저에 자동 저장됩니다.</p><p class="small">이 버전의 주파수·내선·공간명은 모두 작품용 가상 설정입니다.</p></div><button class="resetbtn" id="resetBtn">처음부터 다시 시작</button></div>
+    </section>
+
+    <div class="homebar" id="homebar"></div>
+    <div class="toast" id="toast"><b id="toastTitle">알림</b><span id="toastText"></span></div>
+    <div class="cracks"><svg viewBox="0 0 430 900" preserveAspectRatio="none"><path class="shadow" d="M394 0 L360 74 L380 118 L333 168 L349 233 L301 286 M360 74 L314 92 L286 140 M380 118 L417 154 M333 168 L282 189 L250 229 M349 233 L391 267 M301 286 L321 350 L278 396"/><path d="M394 0 L360 74 L380 118 L333 168 L349 233 L301 286 M360 74 L314 92 L286 140 M380 118 L417 154 M333 168 L282 189 L250 229 M349 233 L391 267 M301 286 L321 350 L278 396"/><path d="M360 74 L371 57 M333 168 L353 151 M301 286 L270 309"/></svg></div>
+    <div class="poweroff" id="poweroff"><div><div class="six">6/6</div><div class="endcap">17:08 · 전원 꺼짐</div></div></div>
+  </div>
+</div></div>
+<script src="script1.js"></script>
+<script src="script2.js"></script>
+<script src="script3.js"></script>
+<script src="script4.js"></script>
+</body></html>
